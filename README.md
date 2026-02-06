@@ -6,9 +6,8 @@ export DATABASE_URL=postgresql+asyncpg://test_user:test_user@localhost:5432/post
 
 export BROKER_URL=redis://localhost:6379/0
 
-celery -A app.worker.celery:app worker --loglevel=info
-celery -A app.worker.celery:app beat --loglevel=info
-
+uv run celery -A app.workers.celery worker --loglevel=info --pool=threads --concurrency=2
+uv run python -m app.workers.consumer_faststream
 
 
 alembic revision --autogenerate

@@ -1,0 +1,33 @@
+import enum
+import hashlib
+from typing import Any, Callable, Dict, Optional, Tuple
+
+from starlette.requests import Request
+from starlette.responses import Response
+
+
+
+def order_key_builder(
+        func: Callable[..., Any],
+        namespace: str = "",
+        *,
+        request: Optional[Request] = None,
+        response: Optional[Response] = None,
+        args: Tuple[Any, ...],
+        kwargs: Dict[str, Any],
+) -> str:
+    kwargs_new = {}
+    for k, v in kwargs.items():
+        if isinstance(v, (int, float, str, bool, type(None))):
+            kwargs_new.update({k:v})
+        if k == "order_id":
+            namespace = "{0}{1}_{2}".format(namespace, k, v)
+    cache_key = hashlib.md5(
+        f"{func.__module__}:{func.__name__}:{args}:{kwargs}".encode()
+    ).hexdigest()
+    return f"{namespace}:{cache_key}"
+
+
+class CacheNamespace(enum.Enum):
+    ONE_ORDER = "one_order"
+    LIST_ORDER = "list_order"

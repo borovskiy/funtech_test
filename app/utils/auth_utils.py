@@ -1,13 +1,12 @@
 from datetime import datetime, timezone, timedelta
 
 import jwt
-from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext
 import bcrypt
 
+from app.core.settings import settings
 from app.raises.raize_user_services import _unauthorized as un
 from app.schemas.auth_schemas import TokenAccessSchemaRes, TokenDataPayloadSchema
-from app.core import settings
 
 
 class AuthUtils:
@@ -54,7 +53,7 @@ class AuthUtils:
             )
             return TokenDataPayloadSchema(**decoded)
 
-        except ExpiredSignatureError:
+        except jwt.exceptions.ExpiredSignatureError:
             raise un("Token expired")
-        except InvalidTokenError as e:
+        except jwt.exceptions.InvalidTokenError as e:
             raise un(f"Invalid token")

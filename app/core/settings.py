@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     KAFKA_PORT: int
     KAFKA_UI_PORT: int
 
+    # Redis
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_DB_CACHE:int
 
     # JWT / Auth
     JWT_SECRET: str

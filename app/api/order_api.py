@@ -1,10 +1,12 @@
 from typing import Annotated, List
 
 from fastapi import APIRouter, Depends
+from fastapi_cache.decorator import cache
 
 from app.schemas.order_schemas import OrderCreateSchemaRes, OrderCreateSchemaReq, OrderPatchStatusSchemaReq
 from app.services.order_service import OrderServices, order_services
 from app.core.access import auth
+from app.utils.cache_builders import order_key_builder, CacheNamespace
 
 router = APIRouter(
     prefix="/orders",
@@ -22,6 +24,7 @@ async def create_order(
 
 
 @router.get("/{order_id}", response_model=OrderCreateSchemaRes, status_code=200, dependencies=[Depends(auth)])
+@cache(expire=60*20, key_builder=order_key_builder)
 async def get_order(
         order_serv: Annotated[OrderServices, Depends(order_services)],
         order_id: int
