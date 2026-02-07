@@ -5,12 +5,16 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.models.base import BaseModel
+from app.core.settings import settings
+
 import app.models
 config = context.config
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = settings.DATABASE_URL
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 target_metadata = BaseModel.metadata

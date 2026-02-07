@@ -20,6 +20,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   pgadmin:
     image: dpage/pgadmin4:8
     container_name: pgadmin
@@ -35,6 +36,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
   kafka:
     image: apache/kafka:latest
     container_name: broker
@@ -53,6 +55,8 @@ services:
       KAFKA_NUM_PARTITIONS: 5
     ports:
       - "9094:9094"
+    networks:
+      - crm_network
     healthcheck:
       test: [
         "CMD-SHELL",
@@ -63,6 +67,7 @@ services:
       retries: 5
 
     ## This is kafka UI service to manager topics and consumers
+
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -75,6 +80,7 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+
   redis:
     image: redis:7-alpine
     restart: always
@@ -84,39 +90,55 @@ services:
       - crm_network
     volumes:
       - redis_data:/data
-#  app:
-#    build: .
-#    container_name: app
-#    ports:
-#      - "5050:5050"
-#    env_file:
-#        - web.env
-#    command: >
-#      sh -c "
-#      echo 'Waiting for PostgreSQL...' &&
-#      sleep 3 &&
-#      echo 'Running migrations...' &&
-#      uv run alembic upgrade head &&
-#      echo 'Starting app...' &&
-#      uv run python -m app.main
-#      "
-#    networks:
-#      - crm_network
-#    depends_on:
-#      postgres:
-#        condition: service_healthy
-#
-#  workers:
-#    build: .
-#    container_name: workers
-#    env_file:
-#      - web.env
-#    command: uv run celery -A app.workers.celery workers --loglevel=info --pool=threads --concurrency=2
-#    networks:
-#      - crm_network
-#    depends_on:
-#      - redis
-#      - app
+
+  app:
+    build: .
+    container_name: app
+    ports:
+      - "9000:9000"
+    env_file:
+        - full_compose.env
+    command: >
+      sh -c "
+      echo 'Waiting for PostgreSQL...' &&
+      sleep 3 &&
+      echo 'Running migrations...' &&
+      uv run alembic upgrade head &&
+      echo 'Starting app...' &&
+      uv run python -m app.api_main
+      "
+    networks:
+      - crm_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  consumer_kafka:
+    build: .
+    container_name: consumer_kafka
+    env_file:
+      - full_compose.env
+    command: uv run python -m app.workers.consumer_faststream
+    networks:
+      - crm_network
+    depends_on:
+      - redis
+      - app
+      - kafka
+
+  workers:
+    build: .
+    container_name: workers
+    env_file:
+      - full_compose.env
+    command: uv run celery -A app.workers.celery worker --loglevel=info --pool=threads --concurrency=2
+    networks:
+      - crm_network
+    depends_on:
+      - redis
+      - app
 
 volumes:
   postgres_data:

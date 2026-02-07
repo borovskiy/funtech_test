@@ -2,6 +2,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.interfaces.observer import EventManager
 
 
 class BaseServices:
@@ -11,3 +12,4 @@ class BaseServices:
             {"component": self.__class__.__name__}
         )
         self.session = session
+        self.event_manager = EventManager()

@@ -1,11 +1,7 @@
 import logging
 from abc import ABC
-from typing import Generic, TypeVar, Type
-
-from sqlalchemy import select
+from typing import Generic, TypeVar
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import update
-
 
 from app.models.base import BaseModel
 

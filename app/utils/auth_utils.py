@@ -51,6 +51,9 @@ class AuthUtils:
                 secret,
                 algorithms=[settings.JWT_ALG]
             )
+            payload = TokenDataPayloadSchema(**decoded)
+            if datetime.now(timezone.utc).timestamp() > payload.exp:
+                raise un(f"Legacy token")
             return TokenDataPayloadSchema(**decoded)
 
         except jwt.exceptions.ExpiredSignatureError:

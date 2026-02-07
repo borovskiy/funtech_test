@@ -1,10 +1,6 @@
-from typing import List
-
-from fastapi import HTTPException
 from pydantic import EmailStr
-from sqlalchemy import select, delete, update, func, insert, and_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 
 from app.models.base_repository import BaseRepo
 from app.models.user_model import UserModel
@@ -16,7 +12,7 @@ class UserRepository(BaseRepo[UserModel]):
         self.user_model = UserModel
 
     async def create_user(self, email: EmailStr, hashed_password: str, name: str) -> UserModel | None:
-        ##  Можно сделать проще через словарь сериализовывать но тут не стал делать - внизу пример
+        ##  Можно сделать проще  - через словарь сериализовывать, но тут не стал делать - внизу пример
         self.log.info(f"create_user")
         obj = UserModel(email=email, hashed_password=hashed_password, name=name)
         self.session.add(obj)
@@ -24,7 +20,7 @@ class UserRepository(BaseRepo[UserModel]):
         return obj
 
     async def find_user_email(self, email: EmailStr) -> UserModel | None:
-        self.log.info("find_user_email %s ", email)
+        self.log.info("find_user_email {email}")
         stmt = (
             select(self.user_model)
             .where(self.user_model.email == email)
@@ -33,7 +29,7 @@ class UserRepository(BaseRepo[UserModel]):
         return result.scalars().one_or_none()
 
     async def find_user_id(self, id_user: int) -> UserModel | Exception:
-        self.log.info("find_user_id %s ", id_user)
+        self.log.info(f"find_user_id {id_user} ")
         stmt = (
             select(self.user_model)
             .where(self.user_model.id == id_user)

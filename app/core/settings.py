@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic_settings import BaseSettings
 
 
@@ -9,7 +11,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: int
 
-    DATABASE_URL: str | None
+    DATABASE_URL: Optional[str] = None
 
     # Kafka
     KAFKA_HOST: str
@@ -42,7 +44,5 @@ class Settings(BaseSettings):
                 f"{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:"
                 f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
             )
-            print(self.DATABASE_URL)
-
 
 settings = Settings()

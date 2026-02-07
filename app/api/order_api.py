@@ -29,7 +29,7 @@ async def get_order(
         order_serv: Annotated[OrderServices, Depends(order_services)],
         order_id: int
 ):
-    """Получение Ожного ордера"""
+    """Получение Одного ордера"""
     return await order_serv.get_order(order_id=order_id)
 
 
@@ -49,7 +49,7 @@ async def get_orders_user(
         order_serv: Annotated[OrderServices, Depends(order_services)],
         user_id: int,
 ):
-    """ПОлучение всех ордеров юзера"""
+    """Получение всех ордеров юзера"""
     ## Я бы тут пагинацию добавил но в задаче небыло ничего. И вобще ограничение сделал без user_id
     ## Все ранво токен требуем - чей токен того и ордеры - или тогда уже админ функционал
     return await order_serv.get_all_order_user(user_id)

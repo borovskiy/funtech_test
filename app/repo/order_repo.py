@@ -21,7 +21,7 @@ class OrderRepository(BaseRepo[OrderModel]):
         return obj
 
     async def get_order_user(self, order_id: int, user_id: int) -> OrderModel | None:
-        self.log.info("get_order_user %s ", order_id)
+        self.log.info(f"get_order_user {order_id}")
         stmt = (
             select(self.order_model)
             .where(
@@ -35,7 +35,7 @@ class OrderRepository(BaseRepo[OrderModel]):
 
     async def update_status_order(self, order_id: int, user_id: int,
                                   update_schema: OrderPatchStatusSchemaReq) -> OrderModel | None:
-        self.log.info("update_status_order %s ", order_id)
+        self.log.info(f"update_status_order {order_id} ")
 
         stmt = (
             update(self.order_model)
@@ -57,7 +57,7 @@ class OrderRepository(BaseRepo[OrderModel]):
 
 
     async def get_all_orders_user(self, user_id: int):
-        self.log.info("get_all_orders_user %s ", user_id)
+        self.log.info(f"get_all_orders_user user_id")
         stmt = (
             select(self.order_model)
             .where(

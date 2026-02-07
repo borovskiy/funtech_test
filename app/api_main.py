@@ -9,6 +9,7 @@ from app.api import order_api, user_api
 from redis.asyncio import Redis
 
 from app.core.settings import settings
+from app.workers.consumer_faststream import router
 
 
 @asynccontextmanager
@@ -27,6 +28,7 @@ def create_app() -> FastAPI:
     app = FastAPI(lifespan=lifespan, title="ORDERS", version="0.1.0")
     app.include_router(order_api.router, prefix="/api/v1")
     app.include_router(user_api.router, prefix="/api/v1")
+    app.include_router(router)
     return app
 
 

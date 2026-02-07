@@ -26,11 +26,11 @@ class UserAuthServices(BaseServices):
 
     async def register_user(self, register_schema: UserRegisterSchemaReq) -> str:
         # Создаем пользователя
-        self.log.info("register_user_with_organisation")
+        self.log.info("register_user")
         find_user = await self.repo_user.find_user_email(register_schema.email)
         if find_user is not None:
-            # Нельзя создать одинакового юзера
-            self.log.warning(f"User with email: {register_schema.email} register")
+            # Нельзя создать одинакового юзера по мэйлу
+            self.log.error(f"User with email: {register_schema.email} register")
             raise _not_found_user(str(register_schema.email))
         register_schema.hashed_password = await AuthUtils.hash_password(register_schema.hashed_password)
         new_user = await self.repo_user.create_user(
@@ -43,12 +43,12 @@ class UserAuthServices(BaseServices):
 
     async def login_user(self, user_email: str, user_password_hash: str) -> TokenAccessSchemaRes:
         # Простой логин юзера. В случае успеха получим токены
-        self.log.info("Try login user %s ", user_email)
+        self.log.info(f"Try login user {user_email}")
         user_db = await self.repo_user.find_user_email(EmailStr(user_email))
         if user_db is None:
-            self.log.warning("User not found")
-            raise _not_found_user("User not found".format())
-        self.log.info("Find user email %s ", user_email)
+            self.log.error("User not found")
+            raise _not_found_user("User not found")
+        self.log.info(f"Find user email: {user_email}")
         if not await AuthUtils.verify_password(user_password_hash, user_db.hashed_password):
             self.log.warning("Wrong password")
             raise _wrong_password("Wrong password")

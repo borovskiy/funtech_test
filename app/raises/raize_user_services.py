@@ -3,10 +3,10 @@ from starlette import status
 
 
 def _not_found_user(email: str):
-    return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User with email: {0} is register".format(email))
+    return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"User with email: {email} is register")
 
 def _not_found_order(order_id: int):
-    return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Order {0} not found".format(order_id))
+    return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Order {order_id} not found")
 
 
 def _wrong_password(email: str):

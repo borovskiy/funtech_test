@@ -21,7 +21,7 @@ def order_key_builder(
         if isinstance(v, (int, float, str, bool, type(None))):
             kwargs_new.update({k:v})
         if k == "order_id":
-            namespace = "{0}{1}_{2}".format(namespace, k, v)
+            namespace = "f{namespace}{k}_{v}"
     cache_key = hashlib.md5(
         f"{func.__module__}:{func.__name__}:{args}:{kwargs}".encode()
     ).hexdigest()

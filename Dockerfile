@@ -1,4 +1,4 @@
-FROM python:3.11-alpine
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -8,17 +8,15 @@ ENV PYTHONPATH=/app
 # Устанавливаем uv
 RUN pip install uv
 
-# Копируем файлы зависимостей
+# Копируем конфиги
 COPY pyproject.toml uv.lock ./
 
-# Устанавливаем зависимости через uv
+# В slim-образе зависимости для aiokafka скачаются в бинарном виде (wheels),
+# поэтому компиляторы и apk/apt здесь не нужны.
 RUN uv sync --frozen --no-cache
 
-# Копируем весь код
+# Копируем код
 COPY . .
 
-# Устанавливаем PYTHONPATH для корректных импортов
-ENV PYTHONPATH=/app:/app/app
-
-# Команда запуска (предполагается, что ваш app в папке app/)
-CMD ["uv", "run", "python", "-m", "app.main"]
+# Запуск
+CMD ["uv", "run", "python", "-m", "app.api_main"]

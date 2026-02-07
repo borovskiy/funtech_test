@@ -6,8 +6,8 @@ from celery import Celery
 logger = logging.getLogger(__name__)
 
 celery_app = Celery('my_app',
-             broker=os.environ.get("BROKER_URL"),
-             backend=os.environ.get("BROKER_URL"),
+             broker=f"redis://{os.environ.get("REDIS_HOST")}:{os.environ.get("REDIS_PORT")}/{os.environ.get("REDIS_DB_CELERY")}",
+             backend=f"redis://{os.environ.get("REDIS_HOST")}:{os.environ.get("REDIS_PORT")}/{os.environ.get("REDIS_DB_CELERY")}",
              include=['app.workers.tasks'])
 
 celery_app.conf.update(
