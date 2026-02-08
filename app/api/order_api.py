@@ -24,7 +24,7 @@ async def create_order(
 
 
 @router.get("/{order_id}", response_model=OrderCreateSchemaRes, status_code=200, dependencies=[Depends(auth)])
-@cache(expire=60*20, key_builder=order_key_builder)
+@cache(expire=60*5, key_builder=order_key_builder)
 async def get_order(
         order_serv: Annotated[OrderServices, Depends(order_services)],
         order_id: int
