@@ -37,8 +37,9 @@ class Settings(BaseSettings):
     GOOGLE_APIS_TOKEN : str= "https://oauth2.googleapis.com/token"
     GOOGLE_AUTH_MAIN_LINK : str= "https://accounts.google.com/o/oauth2/v2/auth?"
     GOOGLE_AUTH_CALLBACK_LINK : str= "http://localhost:9000/api/v1/user_auth/auth/google/callback"
+
     class Config:
-        env_file = "app/.env"
+        env_file = "app/not_compose.env"
         env_file_encoding = "utf-8"
 
     def __init__(self, **kwargs):
