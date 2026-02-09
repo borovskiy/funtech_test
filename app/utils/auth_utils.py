@@ -1,12 +1,20 @@
+import urllib
 from datetime import datetime, timezone, timedelta
 
+from fastapi import HTTPException
+from google.oauth2 import id_token
+
+import aiohttp
 import jwt
 from passlib.context import CryptContext
 import bcrypt
+from google.auth.transport import requests as google_requests
 
 from app.core.settings import settings
 from app.raises.raize_user_services import _unauthorized as un
 from app.schemas.auth_schemas import TokenAccessSchemaRes, TokenDataPayloadSchema
+from app.schemas.google_api_schemas import ParamQueryLinkGoogleSchema, SchemaBodyGoogleGetToken, \
+    SchemaResponseGoogleToken, SchemaVerifyOauth2TokenResponse
 
 
 class AuthUtils:
@@ -60,3 +68,30 @@ class AuthUtils:
             raise un("Token expired")
         except jwt.exceptions.InvalidTokenError as e:
             raise un(f"Invalid token")
+
+    @staticmethod
+    async def generate_google_link_oauth2() -> str:
+        query_param = ParamQueryLinkGoogleSchema(client_id=settings.OAUTH_GOOGLE_CLIENT_ID,
+                                                 redirect_uri=settings.GOOGLE_AUTH_CALLBACK_LINK).model_dump()
+        query_string = urllib.parse.urlencode(query_param, quote_via=urllib.parse.quote)
+        return f"{settings.GOOGLE_AUTH_MAIN_LINK}{query_string}"
+
+    @staticmethod
+    async def get_google_user_id(code: str) -> SchemaVerifyOauth2TokenResponse:
+        async with aiohttp.ClientSession() as session:
+            data = SchemaBodyGoogleGetToken(code=code, redirect_uri=settings.GOOGLE_AUTH_CALLBACK_LINK).model_dump()
+            async with session.post(url=settings.GOOGLE_APIS_TOKEN, data=data) as response:
+                try:
+                    if response.status == 200:
+                        response_data = await response.json()
+                        res = SchemaResponseGoogleToken(**response_data)
+                        id_info = id_token.verify_oauth2_token(
+                            res.id_token,
+                            google_requests.Request(),
+                            settings.OAUTH_GOOGLE_CLIENT_ID
+                        )
+                        return SchemaVerifyOauth2TokenResponse(**id_info)
+                    else:
+                        raise HTTPException(status_code=400, detail=f"Error get user from google")
+                except ValueError as e:
+                    raise HTTPException(status_code=400, detail=f"Invalid token: {str(e)}")

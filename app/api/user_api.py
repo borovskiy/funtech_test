@@ -3,8 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.schemas.auth_schemas import TokenAccessSchemaReq, TokenAccessSchemaRes
+from app.schemas.google_api_schemas import SchemaVerifyOauth2TokenResponse
 from app.schemas.user_schemas import UserRegisterSchemaReq
 from app.services.user_auth_services import UserAuthServices, user_auth_services
+from app.utils.auth_utils import AuthUtils
 
 router = APIRouter(
     prefix="/user_auth",
@@ -20,6 +22,7 @@ async def register_user(
     """Register user"""
     return await user_auth_serv.register_user(register_schema=model_user)
 
+
 @router.post("/token", status_code=201, response_model=TokenAccessSchemaRes)
 async def get_token(
         user_auth_serv: Annotated[UserAuthServices, Depends(user_auth_services)],
@@ -27,3 +30,22 @@ async def get_token(
 ):
     """Create auth token"""
     return await user_auth_serv.login_user(user_email=model_user.email, user_password_hash=model_user.hashed_password)
+
+
+@router.get("/auth/google")
+async def google_login():
+    """Получаем ссылку для гугл авторизации"""
+    return await AuthUtils.generate_google_link_oauth2()
+
+
+@router.get("/auth/google/callback")
+async def google_callback(
+        user_auth_serv: Annotated[UserAuthServices, Depends(user_auth_services)],
+        code: str,
+
+):
+    """
+    Обработка обратного вызова от Google
+    """
+    return await user_auth_serv.login_user_google(code)
+

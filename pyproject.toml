@@ -18,4 +18,6 @@ dependencies = [
     "pyjwt>=2.11.0",
     "fastapi-cache2>=0.2.2",
     "redis>=7.1.0",
+    "aiohttp>=3.13.3",
+    "google-oauth2-tool>=0.0.3",
 ]

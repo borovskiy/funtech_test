@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.raises.raize_user_services import _not_found_user, _wrong_password
 from app.repo.user_repo import UserRepository
 from app.schemas.auth_schemas import TokenAccessSchemaRes, TokenDataPayloadSchema
+from app.schemas.google_api_schemas import SchemaVerifyOauth2TokenResponse
 from app.schemas.user_schemas import UserRegisterSchemaReq
 from app.services.base_services import BaseServices
 from app.utils.auth_utils import AuthUtils
@@ -53,6 +54,20 @@ class UserAuthServices(BaseServices):
             self.log.warning("Wrong password")
             raise _wrong_password("Wrong password")
         return AuthUtils.create_tokens(TokenDataPayloadSchema.model_validate(user_db))
+
+    async def login_user_google(self, code: str) -> TokenAccessSchemaRes:
+        # Логин юзера через гугл. В случае успеха получим токены
+        user_google: SchemaVerifyOauth2TokenResponse = await AuthUtils.get_google_user_id(code)
+        user_db = await self.repo_user.find_user_email(EmailStr(user_google.email))
+        if user_db is None:
+            user_db = await self.repo_user.create_user(
+                email=EmailStr(user_google.email),
+                hashed_password="",
+                name=user_google.name
+            )
+            await self.session.commit()
+        return AuthUtils.create_tokens(TokenDataPayloadSchema.model_validate(user_db))
+
 
 def user_auth_services(session: AsyncSession = Depends(get_db)) -> UserAuthServices:
     return UserAuthServices(session)
