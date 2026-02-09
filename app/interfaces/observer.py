@@ -2,6 +2,7 @@ import logging
 
 from app.schemas.kafta_schema import MessageKafka, TypeMessageKafka
 from app.workers.consumer_faststream import Topics, broker
+from faststream._internal.logger import logger
 
 
 class EventManager:
@@ -30,13 +31,21 @@ class KafkaObserver:
         message = MessageKafka(data=data, type_order=event_type)
         async with self.broker:
             await self.broker.publish(message.model_dump(mode="json"), topic=topic)
-        logging.info(f"[KafkaObserver] send in Kafka: {event_type}")
+        logger.info(f"[KafkaObserver] send in Kafka: {event_type}")
 
 
 class CeleryObserver:
-    async def handle(self, event_type: TypeMessageKafka, data: str):
+    async def handle(self, event_type: TypeMessageKafka, data: str) -> bool:
         # Отправляем в Celery
-        if event_type == TypeMessageKafka.CELERY_TASK_1:
-            from app.workers.tasks import test_task
-            test_task.delay(data)
-        logging.info(f"[CeleryObserver] send in Celery: {event_type}")
+        try:
+            if event_type == TypeMessageKafka.CELERY_TASK_1:
+                from app.workers.tasks import test_task
+                result = test_task.delay(data)
+                if result.id is not None:
+                    logger.info(f"[CeleryObserver] send in Celery id task: {result.id}")
+                    return True
+            return False
+        except Exception as e:
+            logger.error(f"[CeleryObserver] error: {e}")
+            return False
+
