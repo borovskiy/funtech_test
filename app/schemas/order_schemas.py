@@ -1,6 +1,5 @@
 from typing import List
-
-from pydantic import EmailStr, Field
+from uuid import UUID
 
 from app.models.order_model import OrderStatus
 from app.schemas.base_schema import BaseModelSchema, BaseIdSchemaMixin, BaseCreatedAndUpdateSchemaMixin
@@ -12,7 +11,7 @@ class OrderCreateSchemaReq(BaseModelSchema):
 
 
 class OrderCreateSchemaRes(OrderCreateSchemaReq, BaseIdSchemaMixin, BaseCreatedAndUpdateSchemaMixin):
-    id: int
+    id: UUID
     user_id: float
     status: OrderStatus
 

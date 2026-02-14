@@ -20,7 +20,7 @@ class OrderRepository(BaseRepo[OrderModel]):
         await self.session.flush()
         return obj
 
-    async def get_order_user(self, order_id: int, user_id: int) -> OrderModel | None:
+    async def get_order_user(self, order_id: str, user_id: int) -> OrderModel | None:
         self.log.info(f"get_order_user {order_id}")
         stmt = (
             select(self.order_model)
@@ -33,7 +33,7 @@ class OrderRepository(BaseRepo[OrderModel]):
         result = await self.session.execute(stmt)
         return result.scalars().one_or_none()
 
-    async def update_status_order(self, order_id: int, user_id: int,
+    async def update_status_order(self, order_id: str, user_id: int,
                                   update_schema: OrderPatchStatusSchemaReq) -> OrderModel | None:
         self.log.info(f"update_status_order {order_id} ")
 

@@ -1,5 +1,5 @@
-import os
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
+from redis.asyncio import Redis
 
 from app.core.settings import settings
 
@@ -18,4 +18,9 @@ async def get_db():
         finally:
             await session.close()
 
-
+async def get_redis() -> Redis:
+    return Redis(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        db=settings.REDIS_DB_CACHE
+    )

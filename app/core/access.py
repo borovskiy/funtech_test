@@ -3,6 +3,7 @@ from typing import Optional
 
 from fastapi import Security, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pyrate_limiter import Duration, Limiter, Rate
 from starlette import status
 
 from app.schemas.auth_schemas import TokenDataPayloadSchema
@@ -30,3 +31,5 @@ async def get_token(credentials: Optional[HTTPAuthorizationCredentials] = Securi
 async def auth(token: str = Depends(get_token)):
     user_payload = AuthUtils.verify_token(token)
     set_current_user(user_payload)
+
+limiter = Limiter(Rate(10, Duration.SECOND * 5))

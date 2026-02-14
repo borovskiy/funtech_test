@@ -21,11 +21,12 @@ def order_key_builder(
         if isinstance(v, (int, float, str, bool, type(None))):
             kwargs_new.update({k:v})
         if k == "order_id":
-            namespace = "f{namespace}{k}_{v}"
+            namespace = f"{namespace}{k}_{v}"
     cache_key = hashlib.md5(
-        f"{func.__module__}:{func.__name__}:{args}:{kwargs}".encode()
+        f"{func.__module__}:{func.__name__}:{args}:{kwargs_new}".encode()
     ).hexdigest()
-    return f"{namespace}:{cache_key}"
+    result_cache = f"{namespace}:{cache_key}"
+    return result_cache
 
 
 class CacheNamespace(enum.Enum):

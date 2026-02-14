@@ -91,54 +91,54 @@ services:
     volumes:
       - redis_data:/data
 
-  app:
-    build: .
-    container_name: app
-    ports:
-      - "9000:9000"
-    env_file:
-        - full_compose.env
-    command: >
-      sh -c "
-      echo 'Waiting for PostgreSQL...' &&
-      sleep 3 &&
-      echo 'Running migrations...' &&
-      uv run alembic upgrade head &&
-      echo 'Starting app...' &&
-      uv run python -m app.api_main
-      "
-    networks:
-      - crm_network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-
-  consumer_kafka:
-    build: .
-    container_name: consumer_kafka
-    env_file:
-      - full_compose.env
-    command: uv run python -m app.workers.consumer_faststream
-    networks:
-      - crm_network
-    depends_on:
-      - redis
-      - app
-      - kafka
-
-  workers:
-    build: .
-    container_name: workers
-    env_file:
-      - full_compose.env
-    command: uv run celery -A app.workers.celery worker --loglevel=info --pool=threads --concurrency=2
-    networks:
-      - crm_network
-    depends_on:
-      - redis
-      - app
+#  app:
+#    build: .
+#    container_name: app
+#    ports:
+#      - "9000:9000"
+#    env_file:
+#        - full_compose.env
+#    command: >
+#      sh -c "
+#      echo 'Waiting for PostgreSQL...' &&
+#      sleep 3 &&
+#      echo 'Running migrations...' &&
+#      uv run alembic upgrade head &&
+#      echo 'Starting app...' &&
+#      uv run python -m app.api_main
+#      "
+#    networks:
+#      - crm_network
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      kafka:
+#        condition: service_healthy
+#
+#  consumer_kafka:
+#    build: .
+#    container_name: consumer_kafka
+#    env_file:
+#      - full_compose.env
+#    command: uv run python -m app.workers.consumer_faststream
+#    networks:
+#      - crm_network
+#    depends_on:
+#      - redis
+#      - app
+#      - kafka
+#
+#  workers:
+#    build: .
+#    container_name: workers
+#    env_file:
+#      - full_compose.env
+#    command: uv run celery -A app.workers.celery worker --loglevel=info --pool=threads --concurrency=2
+#    networks:
+#      - crm_network
+#    depends_on:
+#      - redis
+#      - app
 
 volumes:
   postgres_data:

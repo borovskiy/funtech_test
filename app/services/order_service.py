@@ -1,4 +1,6 @@
-from typing import List
+import hashlib
+import json
+from typing import List, TYPE_CHECKING
 
 from fastapi import Depends
 from fastapi_cache import FastAPICache
@@ -15,7 +17,6 @@ from app.schemas.order_schemas import OrderCreateSchemaReq, OrderPatchStatusSche
 from app.services.base_services import BaseServices
 from app.core.db_connector import get_db
 
-
 class OrderServices(BaseServices):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
@@ -30,18 +31,21 @@ class OrderServices(BaseServices):
         await self.event_manager.publish_event(event_type=TypeMessageKafka.CELERY_TASK_1, data=data.model_dump())
         return result
 
-    async def get_order(self, order_id: int) -> OrderModel | None:
+    async def get_order(self, order_id: str) -> OrderModel | None:
         self.log.info(f"get_order")
         result = await self.repo_order.get_order_user(order_id, get_current_user().id)
         if result is None:
             raise _not_found_order(order_id)
         return result
 
-    async def update_status_order(self, order_id: int, update_schema: OrderPatchStatusSchemaReq) -> OrderModel:
+    async def update_status_order(self, order_id: str, update_schema: OrderPatchStatusSchemaReq) -> OrderModel:
         self.log.info(f"update_status_order")
         result = await self.repo_order.update_status_order(order_id, get_current_user().id, update_schema)
         await self.session.commit()
         await FastAPICache.clear(f"order_id_{order_id}")
+        cache_backend = FastAPICache.get_backend()
+        cache_key = f"fastapi-cache:order_id_{order_id}:{hashlib.md5(f"app.api.order_api:get_order:():{{'order_id': '{str(order_id)}'}}".encode()).hexdigest()}"
+        await cache_backend.set(cache_key, OrderCreateSchemaRes(**result.as_dict()).model_dump_json(), expire=60 * 5)
         return result
 
     async def get_all_order_user(self, user_id: int) -> List[OrderModel] | None:

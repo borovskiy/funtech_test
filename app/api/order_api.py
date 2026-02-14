@@ -1,12 +1,11 @@
 from typing import Annotated, List
-
 from fastapi import APIRouter, Depends
 from fastapi_cache.decorator import cache
 
 from app.schemas.order_schemas import OrderCreateSchemaRes, OrderCreateSchemaReq, OrderPatchStatusSchemaReq
 from app.services.order_service import OrderServices, order_services
-from app.core.access import auth
-from app.utils.cache_builders import order_key_builder, CacheNamespace
+from app.core.access import auth, limiter
+from app.utils.cache_builders import order_key_builder
 
 router = APIRouter(
     prefix="/orders",
@@ -27,7 +26,7 @@ async def create_order(
 @cache(expire=60*5, key_builder=order_key_builder)
 async def get_order(
         order_serv: Annotated[OrderServices, Depends(order_services)],
-        order_id: int
+        order_id: str
 ):
     """Получение Одного ордера"""
     return await order_serv.get_order(order_id=order_id)
@@ -37,8 +36,7 @@ async def get_order(
 async def update_status(
         order_serv: Annotated[OrderServices, Depends(order_services)],
         data: OrderPatchStatusSchemaReq,
-        order_id: int
-
+        order_id: str
 ):
     """Обновление статуса ордера"""
     return await order_serv.update_status_order(order_id=order_id, update_schema=data)

@@ -11,5 +11,5 @@ def test_task(payload: dict):
     # Теперь у вас есть доступ через точку с поддержкой IDE
     print(f"Processing order: {data.id}")
     time.sleep(2)
-    print(f"Result: {data.status}")
+    print(f"Order {data.id} processed")
     return True

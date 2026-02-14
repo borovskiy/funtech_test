@@ -1,14 +1,14 @@
+from enum import Enum
+
 from sqlalchemy import func, Integer, BigInteger
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.inspection import inspect
 
 
 class BaseModel(DeclarativeBase):
     """
-    Основная модель с временем сохранения и ид
+    Основная модель с временем сохранения
     Можно делать миксином но тут не стал
     """
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     created_at: Mapped[int] = mapped_column(
         BigInteger,
         server_default=func.extract('epoch', func.now()),
@@ -21,4 +21,10 @@ class BaseModel(DeclarativeBase):
     )
 
     def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        result = {}
+        for c in self.__table__.columns:
+            value = getattr(self, c.name)
+            if isinstance(value, Enum):
+                value = value.value
+            result[c.name] = value
+        return result

@@ -1,7 +1,8 @@
 import enum
+import uuid
 from typing import List, Dict, Any, TYPE_CHECKING
 
-from sqlalchemy import Integer, ForeignKey, JSON, Float, Enum, DateTime
+from sqlalchemy import Integer, ForeignKey, JSON, Float, Enum, DateTime, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
@@ -19,8 +20,14 @@ class OrderStatus(enum.Enum):
 
 class OrderModel(BaseModel):
     __tablename__ = "orders"
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     items: Mapped[List[Dict[str, Any]]] = mapped_column(JSON, nullable=False)
     total_price: Mapped[float] = mapped_column(Float, nullable=False)
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
+    # Relationships
     user: Mapped["UserModel"] = relationship(back_populates="orders")
