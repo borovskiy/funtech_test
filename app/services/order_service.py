@@ -16,12 +16,15 @@ from app.schemas.kafta_schema import TypeMessageKafka
 from app.schemas.order_schemas import OrderCreateSchemaReq, OrderPatchStatusSchemaReq, OrderCreateSchemaRes
 from app.services.base_services import BaseServices
 from app.core.db_connector import get_db
+from app.utils.cache_builders import get_key_order_cache
+
 
 class OrderServices(BaseServices):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
         self.repo_order = OrderRepository(self.session)
         self.event_manager.attach(KafkaObserver())
+        self.cache_backend = FastAPICache.get_backend()
 
     async def create_order(self, create_order_schema: OrderCreateSchemaReq) -> str:
         self.log.info(f"create_order")
@@ -42,10 +45,7 @@ class OrderServices(BaseServices):
         self.log.info(f"update_status_order")
         result = await self.repo_order.update_status_order(order_id, get_current_user().id, update_schema)
         await self.session.commit()
-        await FastAPICache.clear(f"order_id_{order_id}")
-        cache_backend = FastAPICache.get_backend()
-        cache_key = f"fastapi-cache:order_id_{order_id}:{hashlib.md5(f"app.api.order_api:get_order:():{{'order_id': '{str(order_id)}'}}".encode()).hexdigest()}"
-        await cache_backend.set(cache_key, OrderCreateSchemaRes(**result.as_dict()).model_dump_json(), expire=60 * 5)
+        await self.cache_backend.set(get_key_order_cache(order_id), OrderCreateSchemaRes(**result.as_dict()).model_dump_json().encode('utf-8'), expire=60 * 5)
         return result
 
     async def get_all_order_user(self, user_id: int) -> List[OrderModel] | None:

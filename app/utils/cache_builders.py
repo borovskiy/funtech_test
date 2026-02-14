@@ -21,13 +21,11 @@ def order_key_builder(
         if isinstance(v, (int, float, str, bool, type(None))):
             kwargs_new.update({k:v})
         if k == "order_id":
-            namespace = f"{namespace}{k}_{v}"
-    cache_key = hashlib.md5(
-        f"{func.__module__}:{func.__name__}:{args}:{kwargs_new}".encode()
-    ).hexdigest()
-    result_cache = f"{namespace}:{cache_key}"
-    return result_cache
+            namespace = get_key_order_cache(v)
+    return namespace
 
+def get_key_order_cache(order_id: str) -> str:
+    return f"fastapi-cache:order_id_{order_id}"
 
 class CacheNamespace(enum.Enum):
     ONE_ORDER = "one_order"
