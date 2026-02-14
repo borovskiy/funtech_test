@@ -12,6 +12,9 @@ def _not_found_order(order_id: str):
 def _wrong_password(email: str):
     return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Wrong password")
 
+def _access_user():
+    return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not you")
+
 def _unauthorized(detail: str = "Not authenticated"):
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

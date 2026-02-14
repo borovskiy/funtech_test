@@ -1,6 +1,4 @@
-import hashlib
-import json
-from typing import List, TYPE_CHECKING
+from typing import List
 
 from fastapi import Depends
 from fastapi_cache import FastAPICache
@@ -10,7 +8,7 @@ from app.core.access import get_current_user
 from app.interfaces.observer import KafkaObserver
 from app.models import OrderModel
 from app.models.order_model import OrderStatus
-from app.raises.raize_user_services import _not_found_order
+from app.raises.raize_user_services import _not_found_order, _access_user
 from app.repo.order_repo import OrderRepository
 from app.schemas.kafta_schema import TypeMessageKafka
 from app.schemas.order_schemas import OrderCreateSchemaReq, OrderPatchStatusSchemaReq, OrderCreateSchemaRes
@@ -49,6 +47,9 @@ class OrderServices(BaseServices):
         return result
 
     async def get_all_order_user(self, user_id: int) -> List[OrderModel] | None:
+        self.log.info(f"get_all_order_user")
+        if get_current_user().id != user_id:
+            raise _access_user()
         result = await self.repo_order.get_all_orders_user(user_id)
         return result
 
